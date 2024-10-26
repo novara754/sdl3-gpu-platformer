@@ -1,0 +1,6 @@
+[submodule "vendor/sdl3"]
+	path = vendor/sdl3
+	url = https://github.com/libsdl-org/SDL
+[submodule "vendor/vcpkg"]
+	path = vendor/vcpkg
+	url = https://github.com/microsoft/vcpkg
