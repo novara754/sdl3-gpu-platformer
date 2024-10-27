@@ -1,12 +1,24 @@
 #include <cassert>
+#include <cstring>
 #include <fstream>
 #include <ios>
 #include <iostream>
+#include <stdexcept>
 
 #include <SDL3/SDL.h>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <spdlog/common.h>
 #include <spdlog/spdlog.h>
-#include <stdexcept>
+#include <stb_image.h>
+
+#include "SDL3/SDL_gpu.h"
+#include "texture.hpp"
+
+constexpr int WIDTH = 1280;
+constexpr int HEIGHT = 720;
 
 std::vector<uint8_t> read_file(const std::string &path)
 {
@@ -40,7 +52,7 @@ int main()
     }
     spdlog::trace("initialized sdl video subsystem");
 
-    SDL_Window *window = SDL_CreateWindow("Platformer", 1280, 720, 0);
+    SDL_Window *window = SDL_CreateWindow("Platformer", WIDTH, HEIGHT, 0);
     if (!window)
     {
         spdlog::error("failed to create window and renderer: {}", SDL_GetError());
@@ -65,11 +77,37 @@ int main()
     }
     spdlog::trace("claimed window for gpu device");
 
+    glm::mat4 proj = glm::ortho(0.0f, static_cast<float>(WIDTH), 0.0f, static_cast<float>(HEIGHT));
+    glm::mat4 camera = proj;
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(WIDTH / 2.0f, HEIGHT / 2.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(64.0f, 64.0f, 1.0f));
+
+    struct Uniforms
+    {
+        glm::mat4 camera, model;
+    } uniforms{
+        .camera = camera,
+        .model = model,
+    };
+
+    GPUTexture knight_texture;
+    try
+    {
+        knight_texture = GPUTexture::from_file(device, "../../assets/knight.png");
+    }
+    catch (...)
+    {
+        spdlog::error("failed to create knight texture");
+        return 1;
+    }
+
     std::vector<uint8_t> vertex_shader_code, fragment_shader_code;
     try
     {
-        vertex_shader_code = read_file("../src/triangle.vert.bin");
-        fragment_shader_code = read_file("../src/triangle.frag.bin");
+        vertex_shader_code = read_file("../src/sprite.vert.bin");
+        fragment_shader_code = read_file("../src/sprite.frag.bin");
     }
     catch (std::exception &e)
     {
@@ -87,7 +125,7 @@ int main()
         .num_samplers = 0,
         .num_storage_textures = 0,
         .num_storage_buffers = 0,
-        .num_uniform_buffers = 0,
+        .num_uniform_buffers = 2,
         .props = 0,
     };
     SDL_GPUShader *vertex_shader = SDL_CreateGPUShader(device, &vertex_shader_create_info);
@@ -104,7 +142,7 @@ int main()
         .entrypoint = "main",
         .format = SDL_GPU_SHADERFORMAT_SPIRV,
         .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-        .num_samplers = 0,
+        .num_samplers = 1,
         .num_storage_textures = 0,
         .num_storage_buffers = 0,
         .num_uniform_buffers = 0,
@@ -138,7 +176,7 @@ int main()
                 .padding2 = 0,
             },
     };
-    SDL_GPUGraphicsPipelineCreateInfo create_info{
+    SDL_GPUGraphicsPipelineCreateInfo pipeline_create_info{
         .vertex_shader = vertex_shader,
         .fragment_shader = fragment_shader,
         .vertex_input_state =
@@ -176,14 +214,14 @@ int main()
             },
         .props = 0,
     };
-    SDL_GPUGraphicsPipeline *triangle_pipeline =
-        SDL_CreateGPUGraphicsPipeline(device, &create_info);
-    if (!triangle_pipeline)
+    SDL_GPUGraphicsPipeline *pipeline =
+        SDL_CreateGPUGraphicsPipeline(device, &pipeline_create_info);
+    if (!pipeline)
     {
-        spdlog::error("failed to create triangle graphics pipeline: {}", SDL_GetError());
+        spdlog::error("failed to create graphics pipeline: {}", SDL_GetError());
         return 1;
     }
-    spdlog::trace("created triangle graphics pipeline");
+    spdlog::trace("created graphics pipeline");
 
     spdlog::trace("entering main loop");
     while (true)
@@ -230,8 +268,11 @@ int main()
             SDL_BeginGPURenderPass(cmd_buf, &color_target_info, 1, nullptr);
         assert(render_pass);
         {
-            SDL_BindGPUGraphicsPipeline(render_pass, triangle_pipeline);
-            SDL_DrawGPUPrimitives(render_pass, 3, 1, 0, 0);
+            SDL_BindGPUGraphicsPipeline(render_pass, pipeline);
+            SDL_PushGPUVertexUniformData(cmd_buf, 0, &uniforms, sizeof(uniforms));
+            SDL_GPUTextureSamplerBinding texture_sampler_binding = knight_texture.get_binding();
+            SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
+            SDL_DrawGPUPrimitives(render_pass, 6, 1, 0, 0);
         }
         SDL_EndGPURenderPass(render_pass);
 
