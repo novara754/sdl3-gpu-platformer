@@ -81,7 +81,7 @@ GPUTexture GPUTexture::from_file(SDL_GPUDevice *device, const std::string &path)
         throw std::runtime_error("failed to create sampler");
     }
 
-    return GPUTexture(device, texture, sampler);
+    return GPUTexture(device, texture, sampler, path);
 }
 
 [[nodiscard]] SDL_GPUTextureSamplerBinding GPUTexture::get_binding() const noexcept

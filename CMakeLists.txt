@@ -20,6 +20,9 @@ find_program(glslc_executable NAMES glslc HINTS Vulkan::glslc)
 
 add_executable(platformer
         src/main.cpp
+        src/engine.cpp
+        src/read_file.cpp
+        src/sprite_render_pass.cpp
         src/texture.cpp
         src/stb_impl.c
 )
@@ -62,8 +65,6 @@ endfunction()
 
 compile_shader(platformer ENV vulkan1.1 FORMAT bin
         SOURCES
-        src/triangle.frag
-        src/triangle.vert
         src/sprite.frag
         src/sprite.vert
 )
