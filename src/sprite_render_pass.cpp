@@ -31,7 +31,8 @@ bool SpriteRenderPass::init(SDL_GPUTextureFormat swapchain_texture_format)
         .num_uniform_buffers = 2,
         .props = 0,
     };
-    SDL_GPUShader *vertex_shader = SDL_CreateGPUShader(m_device, &vertex_shader_create_info);
+    SDL_GPUShader *vertex_shader =
+        SDL_CreateGPUShader(m_context->device, &vertex_shader_create_info);
     if (!vertex_shader)
     {
         spdlog::error("SpriteRenderPass::init: failed to create vertex shader");
@@ -51,7 +52,8 @@ bool SpriteRenderPass::init(SDL_GPUTextureFormat swapchain_texture_format)
         .num_uniform_buffers = 0,
         .props = 0,
     };
-    SDL_GPUShader *fragment_shader = SDL_CreateGPUShader(m_device, &fragment_shader_create_info);
+    SDL_GPUShader *fragment_shader =
+        SDL_CreateGPUShader(m_context->device, &fragment_shader_create_info);
     if (!fragment_shader)
     {
         spdlog::error("SpriteRenderPass::init: failed to create fragment shader");
@@ -115,7 +117,7 @@ bool SpriteRenderPass::init(SDL_GPUTextureFormat swapchain_texture_format)
             },
         .props = 0,
     };
-    m_pipeline = SDL_CreateGPUGraphicsPipeline(m_device, &pipeline_create_info);
+    m_pipeline = SDL_CreateGPUGraphicsPipeline(m_context->device, &pipeline_create_info);
     if (!m_pipeline)
     {
         spdlog::error(
@@ -126,8 +128,8 @@ bool SpriteRenderPass::init(SDL_GPUTextureFormat swapchain_texture_format)
     }
     spdlog::trace("SpriteRenderPass::init: created graphics pipeline");
 
-    SDL_ReleaseGPUShader(m_device, vertex_shader);
-    SDL_ReleaseGPUShader(m_device, fragment_shader);
+    SDL_ReleaseGPUShader(m_context->device, vertex_shader);
+    SDL_ReleaseGPUShader(m_context->device, fragment_shader);
 
     return true;
 }
@@ -165,7 +167,8 @@ void SpriteRenderPass::render(
                 .model = sprite.model,
             };
             SDL_PushGPUVertexUniformData(cmd_buffer, 0, &uniforms, sizeof(uniforms));
-            SDL_GPUTextureSamplerBinding texture_sampler_binding = sprite.texture.get_binding();
+            SDL_GPUTextureSamplerBinding texture_sampler_binding =
+                m_context->texture_registry.get(sprite.texture_id).get_binding();
             SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
             SDL_DrawGPUPrimitives(render_pass, 6, 1, 0, 0);
         }

@@ -6,12 +6,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "sprite_render_pass.hpp"
 #include "texture.hpp"
 
 bool Engine::init()
 {
-    if (!m_sprite_render_pass.init(SDL_GetGPUSwapchainTextureFormat(m_device, m_window)))
+    if (!m_sprite_render_pass.init(
+            SDL_GetGPUSwapchainTextureFormat(m_context.device, m_context.window)
+        ))
     {
         spdlog::error("Engine::init: failed to initialize sprite render pass");
         return false;
@@ -19,27 +20,32 @@ bool Engine::init()
 
     m_camera = glm::ortho(0.0f, static_cast<float>(WIDTH), 0.0f, static_cast<float>(HEIGHT));
 
-    GPUTexture knight_texture;
-
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(WIDTH / 2.0f, HEIGHT / 2.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(64.0f, 64.0f, 1.0f));
-
-    Sprite knight{
-        .texture = {},
-        .model = model,
-    };
+    size_t knight_texture_id, block_texture_id;
     try
     {
-        knight.texture = GPUTexture::from_file(m_device, "../../assets/knight.png");
+        knight_texture_id = m_context.texture_registry.add(
+            GPUTexture::from_file(m_context.device, "../../assets/knight.png")
+        );
+        block_texture_id = m_context.texture_registry.add(
+            GPUTexture::from_file(m_context.device, "../../assets/block.png")
+        );
     }
     catch (...)
     {
-        spdlog::error("Engine::init: failed to create knight texture");
+        spdlog::error("Engine::init: failed to create textures");
         return false;
     }
 
-    m_sprites.emplace_back(std::move(knight));
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(WIDTH / 2.0f, HEIGHT / 2.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(19.0f, 19.0f, 1.0f));
+    m_sprites.emplace_back(knight_texture_id, model);
+
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(WIDTH / 2.0f, HEIGHT / 2.0f, 0.0f));
+    model = glm::translate(model, glm::vec3(0.0f, -32.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(19.0f, 19.0f, 1.0f));
+    m_sprites.emplace_back(block_texture_id, model);
 
     return true;
 }
@@ -58,7 +64,7 @@ void Engine::run()
             }
         }
 
-        SDL_GPUCommandBuffer *cmd_buf = SDL_AcquireGPUCommandBuffer(m_device);
+        SDL_GPUCommandBuffer *cmd_buf = SDL_AcquireGPUCommandBuffer(m_context.device);
         if (!cmd_buf)
         {
             spdlog::error("Engine::run: failed to acquire gpu command buffer: {}", SDL_GetError());
@@ -68,7 +74,7 @@ void Engine::run()
         SDL_GPUTexture *swapchain_texture;
         if (!SDL_AcquireGPUSwapchainTexture(
                 cmd_buf,
-                m_window,
+                m_context.window,
                 &swapchain_texture,
                 nullptr,
                 nullptr

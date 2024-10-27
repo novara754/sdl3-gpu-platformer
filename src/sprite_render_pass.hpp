@@ -6,11 +6,11 @@
 #include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
 
-#include "texture.hpp"
+#include "context.hpp"
 
 struct Sprite
 {
-    GPUTexture texture;
+    size_t texture_id;
     glm::mat4 model;
 };
 
@@ -21,7 +21,7 @@ class SpriteRenderPass
         glm::mat4 camera, model;
     };
 
-    SDL_GPUDevice *m_device;
+    Context *m_context;
     SDL_GPUGraphicsPipeline *m_pipeline{nullptr};
 
     SpriteRenderPass() = delete;
@@ -31,7 +31,7 @@ class SpriteRenderPass
     SpriteRenderPass &operator=(SpriteRenderPass &&) = delete;
 
   public:
-    SpriteRenderPass(SDL_GPUDevice *device) : m_device(device)
+    SpriteRenderPass(Context *context) : m_context(context)
     {
     }
 
@@ -39,7 +39,7 @@ class SpriteRenderPass
     {
         if (m_pipeline)
         {
-            SDL_ReleaseGPUGraphicsPipeline(m_device, m_pipeline);
+            SDL_ReleaseGPUGraphicsPipeline(m_context->device, m_pipeline);
             spdlog::trace("SpriteRenderPass::~SpriteRenderPass: released sprite render pipeline");
         }
     }
