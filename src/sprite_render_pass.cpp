@@ -1,7 +1,9 @@
 #include "sprite_render_pass.hpp"
 
+#include <entt/entt.hpp>
 #include <spdlog/spdlog.h>
 
+#include "ecs.hpp"
 #include "read_file.hpp"
 
 bool SpriteRenderPass::init(SDL_GPUTextureFormat swapchain_texture_format)
@@ -136,7 +138,7 @@ bool SpriteRenderPass::init(SDL_GPUTextureFormat swapchain_texture_format)
 
 void SpriteRenderPass::render(
     SDL_GPUCommandBuffer *cmd_buffer, SDL_GPUTexture *target_texture, glm::mat4 &camera,
-    const std::vector<Sprite> &sprites
+    const entt::registry &entities
 ) const
 {
     SDL_GPUColorTargetInfo color_target_info{
@@ -160,11 +162,12 @@ void SpriteRenderPass::render(
     {
         SDL_BindGPUGraphicsPipeline(render_pass, m_pipeline);
 
-        for (const auto &sprite : sprites)
+        auto sprites = entities.view<const Transform, const Sprite>();
+        for (const auto [entity, transform, sprite] : sprites.each())
         {
             Uniforms uniforms{
                 .camera = camera,
-                .model = sprite.model,
+                .model = transform.to_matrix(),
             };
             SDL_PushGPUVertexUniformData(cmd_buffer, 0, &uniforms, sizeof(uniforms));
             SDL_GPUTextureSamplerBinding texture_sampler_binding =

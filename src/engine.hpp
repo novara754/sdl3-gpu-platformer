@@ -1,8 +1,7 @@
 #pragma once
 
-#include <vector>
-
 #include <SDL3/SDL.h>
+#include <entt/entt.hpp>
 #include <spdlog/spdlog.h>
 
 #include "context.hpp"
@@ -15,9 +14,13 @@ class Engine
 {
     Context m_context;
 
+    double m_last_frame_time{0.0};
+    double m_delta_time{0.0};
+    bool m_key_states[SDL_SCANCODE_COUNT]{};
+
     SpriteRenderPass m_sprite_render_pass;
     glm::mat4 m_camera;
-    std::vector<Sprite> m_sprites;
+    entt::registry m_entities;
 
     Engine() = delete;
     Engine(const Engine &) = delete;
@@ -28,11 +31,14 @@ class Engine
   public:
     Engine(SDL_Window *window, SDL_GPUDevice *device)
         : m_context(window, device), m_sprite_render_pass(&m_context)
-
     {
     }
 
     [[nodiscard]] bool init();
 
     void run();
+
+  private:
+    void render();
+    void update();
 };

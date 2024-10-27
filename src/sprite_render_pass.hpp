@@ -1,18 +1,11 @@
 #pragma once
 
-#include <vector>
-
 #include <SDL3/SDL_gpu.h>
+#include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
 
 #include "context.hpp"
-
-struct Sprite
-{
-    size_t texture_id;
-    glm::mat4 model;
-};
 
 class SpriteRenderPass
 {
@@ -48,6 +41,6 @@ class SpriteRenderPass
 
     void render(
         SDL_GPUCommandBuffer *cmd_buffer, SDL_GPUTexture *target_texture, glm::mat4 &camera,
-        const std::vector<Sprite> &sprites
+        const entt::registry &entities
     ) const;
 };

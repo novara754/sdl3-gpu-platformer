@@ -14,7 +14,6 @@ find_package(fmt CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(Stb REQUIRED)
-find_package(imgui CONFIG REQUIRED)
 
 find_program(glslc_executable NAMES glslc HINTS Vulkan::glslc)
 
@@ -39,7 +38,6 @@ target_include_directories(platformer PRIVATE ${Stb_INCLUDE_DIR})
 target_link_libraries(platformer PRIVATE fmt::fmt)
 target_link_libraries(platformer PRIVATE spdlog::spdlog)
 target_link_libraries(platformer PRIVATE glm::glm)
-target_link_libraries(platformer PRIVATE imgui::imgui)
 target_link_libraries(platformer PRIVATE SDL3::SDL3-static)
 
 function(compile_shader target)

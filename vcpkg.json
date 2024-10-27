@@ -31,8 +31,8 @@
       "version>=": "2023-04-11#1"
     },
     {
-      "name": "imgui",
-      "version>=": "1.90#3"
+      "name": "entt",
+      "version>=": "3.13.2"
     }
   ]
 }
