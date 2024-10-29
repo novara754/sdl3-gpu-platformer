@@ -54,6 +54,7 @@ void Engine::render()
 
 void Engine::update()
 {
+    m_context.physics.update(m_delta_time);
     m_game.update(m_delta_time);
 }
 

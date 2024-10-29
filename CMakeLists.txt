@@ -8,7 +8,8 @@ set(SDL_STATIC ON)
 set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "" FORCE)
 set(SPDLOG_WCHAR_TO_UTF8_SUPPORT ON CACHE BOOL "" FORCE)
 
-add_subdirectory(vendor/sdl3)
+add_subdirectory(vendor/sdl3 SYSTEM)
+add_subdirectory(vendor/box2d SYSTEM)
 
 find_package(fmt CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
@@ -24,6 +25,7 @@ add_executable(platformer
         src/sprite_render_pass.cpp
         src/texture.cpp
         src/game.cpp
+        src/physics.cpp
         src/stb_impl.c
 )
 
@@ -40,6 +42,7 @@ target_link_libraries(platformer PRIVATE fmt::fmt)
 target_link_libraries(platformer PRIVATE spdlog::spdlog)
 target_link_libraries(platformer PRIVATE glm::glm)
 target_link_libraries(platformer PRIVATE SDL3::SDL3-static)
+target_link_libraries(platformer PRIVATE box2d::box2d)
 
 function(compile_shader target)
         cmake_parse_arguments(PARSE_ARGV 1 arg "" "ENV;FORMAT" "SOURCES")

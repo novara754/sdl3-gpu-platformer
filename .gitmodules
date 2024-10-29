@@ -4,3 +4,6 @@
 [submodule "vendor/vcpkg"]
 	path = vendor/vcpkg
 	url = https://github.com/microsoft/vcpkg
+[submodule "vendor/box2d"]
+	path = vendor/box2d
+	url = https://github.com/erincatto/box2d
