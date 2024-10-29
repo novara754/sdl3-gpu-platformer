@@ -3,6 +3,7 @@
 #include <entt/entt.hpp>
 #include <spdlog/spdlog.h>
 
+#include "SDL3/SDL_gpu.h"
 #include "ecs.hpp"
 #include "read_file.hpp"
 
@@ -67,15 +68,15 @@ bool SpriteRenderPass::init(SDL_GPUTextureFormat swapchain_texture_format)
         .format = swapchain_texture_format,
         .blend_state =
             {
-                .src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_COLOR,
-                .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_DST_COLOR,
+                .src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+                .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
                 .color_blend_op = SDL_GPU_BLENDOP_ADD,
-                .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-                .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_DST_ALPHA,
+                .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
+                .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ZERO,
                 .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
                 .color_write_mask = SDL_GPU_COLORCOMPONENT_R | SDL_GPU_COLORCOMPONENT_G |
                                     SDL_GPU_COLORCOMPONENT_B | SDL_GPU_COLORCOMPONENT_A,
-                .enable_blend = false,
+                .enable_blend = true,
                 .enable_color_write_mask = false,
                 .padding1 = 0,
                 .padding2 = 0,
