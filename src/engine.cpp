@@ -5,7 +5,9 @@
 bool Engine::init()
 {
     if (!m_sprite_render_pass.init(
-            SDL_GetGPUSwapchainTextureFormat(m_context.device, m_context.window)
+            SDL_GetGPUSwapchainTextureFormat(m_context.device, m_context.window),
+            WIDTH,
+            HEIGHT
         ))
     {
         spdlog::error("Engine::init: failed to initialize sprite render pass");

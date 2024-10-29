@@ -17,6 +17,7 @@ class SpriteRenderPass
     };
 
     Context *m_context;
+    GPUTexture m_depth_texture;
     SDL_GPUGraphicsPipeline *m_pipeline{nullptr};
 
     SpriteRenderPass() = delete;
@@ -39,10 +40,13 @@ class SpriteRenderPass
         }
     }
 
-    [[nodiscard]] bool init(SDL_GPUTextureFormat swapchain_texture_format);
+    [[nodiscard]] bool init(
+        SDL_GPUTextureFormat swapchain_texture_format, uint32_t surface_width,
+        uint32_t surface_height
+    );
 
     void render(
         SDL_GPUCommandBuffer *cmd_buffer, SDL_GPUTexture *target_texture, const glm::mat4 &camera,
         const entt::registry &entities
-    ) const;
+    );
 };

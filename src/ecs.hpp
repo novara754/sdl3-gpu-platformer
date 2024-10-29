@@ -25,6 +25,7 @@ struct Sprite
 {
     size_t texture_id;
     glm::ivec2 size;
+    int z_index{0};
     bool flipped_horizontally{false};
     bool flipped_vertically{false};
 };

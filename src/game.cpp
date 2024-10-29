@@ -17,7 +17,7 @@ bool Game::init()
         static_cast<float>(VIEWPORT_HEIGHT)
     );
 
-    size_t knight_texture_id, block_texture_id;
+    size_t knight_texture_id, block_texture_id, bg_texture_id;
     try
     {
         knight_texture_id = m_context->texture_registry.add(
@@ -26,12 +26,19 @@ bool Game::init()
         block_texture_id = m_context->texture_registry.add(
             GPUTexture::from_file(m_context->device, "../../assets/block.png")
         );
+        bg_texture_id = m_context->texture_registry.add(
+            GPUTexture::from_file(m_context->device, "../../assets/background.png")
+        );
     }
     catch (std::exception &e)
     {
         spdlog::error("Game::init: failed to create textures: {}", e.what());
         return false;
     }
+
+    auto bg = m_entities.create();
+    m_entities.emplace<Transform>(bg, glm::vec2(0.0f));
+    m_entities.emplace<Sprite>(bg, bg_texture_id, glm::ivec2(640, 360));
 
     auto knight = m_entities.create();
     m_entities.emplace<Player>(knight);

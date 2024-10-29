@@ -6,9 +6,14 @@
 #include "SDL3/SDL_gpu.h"
 #include "ecs.hpp"
 #include "read_file.hpp"
+#include "texture.hpp"
 
-bool SpriteRenderPass::init(SDL_GPUTextureFormat swapchain_texture_format)
+bool SpriteRenderPass::init(
+    SDL_GPUTextureFormat swapchain_texture_format, uint32_t surface_width, uint32_t surface_height
+)
 {
+    m_depth_texture = GPUTexture::depth_target(m_context->device, surface_width, surface_height);
+
     std::vector<uint8_t> vertex_shader_code, fragment_shader_code;
     try
     {
@@ -107,13 +112,26 @@ bool SpriteRenderPass::init(SDL_GPUTextureFormat swapchain_texture_format)
                 .padding2 = 0,
             },
         .multisample_state = {},
-        .depth_stencil_state = {},
+        .depth_stencil_state =
+            {
+                .compare_op = SDL_GPU_COMPAREOP_LESS,
+                .back_stencil_state = {},
+                .front_stencil_state = {},
+                .compare_mask = 0,
+                .write_mask = 0,
+                .enable_depth_test = true,
+                .enable_depth_write = true,
+                .enable_stencil_test = false,
+                .padding1 = 0,
+                .padding2 = 0,
+                .padding3 = 0,
+            },
         .target_info =
             {
                 .color_target_descriptions = &color_target_description,
                 .num_color_targets = 1,
-                .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_INVALID,
-                .has_depth_stencil_target = false,
+                .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D24_UNORM,
+                .has_depth_stencil_target = true,
                 .padding1 = 0,
                 .padding2 = 0,
                 .padding3 = 0,
@@ -140,7 +158,7 @@ bool SpriteRenderPass::init(SDL_GPUTextureFormat swapchain_texture_format)
 void SpriteRenderPass::render(
     SDL_GPUCommandBuffer *cmd_buffer, SDL_GPUTexture *target_texture, const glm::mat4 &camera,
     const entt::registry &entities
-) const
+)
 {
     SDL_GPUColorTargetInfo color_target_info{
         .texture = target_texture,
@@ -157,8 +175,20 @@ void SpriteRenderPass::render(
         .padding1 = 0,
         .padding2 = 0,
     };
+    SDL_GPUDepthStencilTargetInfo depth_stencil_info{
+        .texture = m_depth_texture.get_texture(),
+        .clear_depth = 1.0f,
+        .load_op = SDL_GPU_LOADOP_CLEAR,
+        .store_op = SDL_GPU_STOREOP_STORE,
+        .stencil_load_op = SDL_GPU_LOADOP_DONT_CARE,
+        .stencil_store_op = SDL_GPU_STOREOP_DONT_CARE,
+        .cycle = false,
+        .clear_stencil = 0,
+        .padding1 = 0,
+        .padding2 = 0,
+    };
     SDL_GPURenderPass *render_pass =
-        SDL_BeginGPURenderPass(cmd_buffer, &color_target_info, 1, nullptr);
+        SDL_BeginGPURenderPass(cmd_buffer, &color_target_info, 1, &depth_stencil_info);
     assert(render_pass);
     {
         SDL_BindGPUGraphicsPipeline(render_pass, m_pipeline);
@@ -166,10 +196,14 @@ void SpriteRenderPass::render(
         auto sprites = entities.view<const Transform, const Sprite>();
         for (const auto [entity, transform, sprite] : sprites.each())
         {
+            glm::mat4 z_index_matrix = glm::translate(
+                glm::mat4(1.0f),
+                glm::vec3(0.0f, 0.0f, static_cast<float>(sprite.z_index))
+            );
             glm::mat4 size_matrix = glm::scale(glm::mat4(1.0f), glm::vec3(sprite.size, 1.0f));
             Uniforms uniforms{
                 .camera = camera,
-                .model = transform.to_matrix() * size_matrix,
+                .model = transform.to_matrix() * z_index_matrix * size_matrix,
                 .flipped = glm::vec2(
                     sprite.flipped_horizontally ? -1.0 : 1.0,
                     sprite.flipped_vertically ? -1.0 : 1.0

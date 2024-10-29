@@ -26,6 +26,9 @@ class GPUTexture
   public:
     [[nodiscard]] static GPUTexture from_file(SDL_GPUDevice *device, const std::string &path);
 
+    [[nodiscard]] static GPUTexture
+    depth_target(SDL_GPUDevice *device, uint32_t width, uint32_t height);
+
     GPUTexture() = default;
 
     GPUTexture(GPUTexture &&other)
@@ -44,7 +47,18 @@ class GPUTexture
         return *this;
     }
 
-    [[nodiscard]] SDL_GPUTextureSamplerBinding get_binding() const noexcept;
+    [[nodiscard]] SDL_GPUTexture *get_texture()
+    {
+        return m_texture;
+    }
+
+    [[nodiscard]] SDL_GPUTextureSamplerBinding get_binding() const noexcept
+    {
+        return SDL_GPUTextureSamplerBinding{
+            .texture = m_texture,
+            .sampler = m_sampler,
+        };
+    }
 
     ~GPUTexture()
     {

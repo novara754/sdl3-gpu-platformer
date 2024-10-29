@@ -11,8 +11,8 @@ bool copy_to_texture(
 
 GPUTexture GPUTexture::from_file(SDL_GPUDevice *device, const std::string &path)
 {
-    int img_width, img_height, img_channels;
-    unsigned char *img_data = stbi_load(path.c_str(), &img_width, &img_height, &img_channels, 4);
+    int img_width, img_height;
+    unsigned char *img_data = stbi_load(path.c_str(), &img_width, &img_height, nullptr, 4);
 
     if (!img_data)
     {
@@ -41,7 +41,7 @@ GPUTexture GPUTexture::from_file(SDL_GPUDevice *device, const std::string &path)
     if (!copy_to_texture(
             device,
             img_data,
-            img_width * img_height * img_channels,
+            img_width * img_height * 4,
             texture,
             img_width,
             img_height
@@ -84,12 +84,31 @@ GPUTexture GPUTexture::from_file(SDL_GPUDevice *device, const std::string &path)
     return GPUTexture(device, texture, sampler, path);
 }
 
-[[nodiscard]] SDL_GPUTextureSamplerBinding GPUTexture::get_binding() const noexcept
+[[nodiscard]] GPUTexture
+GPUTexture::depth_target(SDL_GPUDevice *device, uint32_t width, uint32_t height)
 {
-    return SDL_GPUTextureSamplerBinding{
-        .texture = m_texture,
-        .sampler = m_sampler,
+    SDL_GPUTextureCreateInfo texture_create_info{
+        .type = SDL_GPU_TEXTURETYPE_2D,
+        .format = SDL_GPU_TEXTUREFORMAT_D24_UNORM,
+        .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
+        .width = width,
+        .height = height,
+        .layer_count_or_depth = 1,
+        .num_levels = 1,
+        .sample_count = SDL_GPU_SAMPLECOUNT_1,
+        .props = 0,
     };
+    SDL_GPUTexture *texture = SDL_CreateGPUTexture(device, &texture_create_info);
+    if (!texture)
+    {
+        spdlog::error(
+            "GPUTexture::depth_target: failed to create depth texture: {}",
+            SDL_GetError()
+        );
+        throw std::runtime_error("failed to create depth texture");
+    }
+
+    return GPUTexture(device, texture, nullptr, "depth texture");
 }
 
 bool copy_to_texture(
