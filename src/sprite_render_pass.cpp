@@ -138,7 +138,7 @@ bool SpriteRenderPass::init(SDL_GPUTextureFormat swapchain_texture_format)
 }
 
 void SpriteRenderPass::render(
-    SDL_GPUCommandBuffer *cmd_buffer, SDL_GPUTexture *target_texture, glm::mat4 &camera,
+    SDL_GPUCommandBuffer *cmd_buffer, SDL_GPUTexture *target_texture, const glm::mat4 &camera,
     const entt::registry &entities
 ) const
 {

@@ -23,6 +23,7 @@ add_executable(platformer
         src/read_file.cpp
         src/sprite_render_pass.cpp
         src/texture.cpp
+        src/game.cpp
         src/stb_impl.c
 )
 
