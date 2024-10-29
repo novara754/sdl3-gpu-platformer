@@ -166,12 +166,11 @@ void SpriteRenderPass::render(
         auto sprites = entities.view<const Transform, const Sprite>();
         for (const auto [entity, transform, sprite] : sprites.each())
         {
+            glm::mat4 size_matrix = glm::scale(glm::mat4(1.0f), glm::vec3(sprite.size, 1.0f));
             Uniforms uniforms{
                 .camera = camera,
-                .model = transform.to_matrix(),
-                .size_flipped = glm::vec4(
-                    static_cast<float>(sprite.size.x),
-                    static_cast<float>(sprite.size.y),
+                .model = transform.to_matrix() * size_matrix,
+                .flipped = glm::vec2(
                     sprite.flipped_horizontally ? -1.0 : 1.0,
                     sprite.flipped_vertically ? -1.0 : 1.0
                 ),

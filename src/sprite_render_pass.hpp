@@ -13,9 +13,7 @@ class SpriteRenderPass
     {
         glm::mat4 camera;
         glm::mat4 model;
-        // x & y: size width & height
-        // z & w: flipped hori & vert
-        glm::vec4 size_flipped;
+        glm::vec2 flipped;
     };
 
     Context *m_context;

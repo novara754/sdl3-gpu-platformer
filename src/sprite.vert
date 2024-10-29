@@ -3,7 +3,7 @@
 layout(set = 1, binding = 0) uniform UBO {
     mat4 camera;
     mat4 model;
-    vec4 size_flipped;
+    vec2 flipped;
 } ubo;
 
 layout(location = 0) out vec2 tex_coords;
@@ -27,6 +27,6 @@ vec2 uv[6] = vec2[](
 );
 
 void main() {
-    gl_Position = ubo.camera * ubo.model * vec4(ubo.size_flipped.xy * positions[gl_VertexIndex], 0.0, 1.0);
-    tex_coords = ubo.size_flipped.zw * uv[gl_VertexIndex];
+    gl_Position = ubo.camera * ubo.model * vec4(positions[gl_VertexIndex], 0.0, 1.0);
+    tex_coords = ubo.flipped * uv[gl_VertexIndex];
 }
