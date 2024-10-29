@@ -8,8 +8,8 @@
 class Game
 {
   public:
-    static constexpr int RENDER_WIDTH = 1280;
-    static constexpr int RENDER_HEIGHT = 720;
+    static constexpr int VIEWPORT_WIDTH = 640;
+    static constexpr int VIEWPORT_HEIGHT = 360;
 
   private:
     Context *m_context;

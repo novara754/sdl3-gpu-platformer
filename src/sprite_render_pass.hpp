@@ -11,7 +11,11 @@ class SpriteRenderPass
 {
     struct Uniforms
     {
-        glm::mat4 camera, model;
+        glm::mat4 camera;
+        glm::mat4 model;
+        // x & y: size width & height
+        // z & w: flipped hori & vert
+        glm::vec4 size_flipped;
     };
 
     Context *m_context;

@@ -8,8 +8,12 @@
 
 bool Game::init()
 {
-    m_camera =
-        glm::ortho(0.0f, static_cast<float>(RENDER_WIDTH), 0.0f, static_cast<float>(RENDER_HEIGHT));
+    m_camera = glm::ortho(
+        0.0f,
+        static_cast<float>(VIEWPORT_WIDTH),
+        0.0f,
+        static_cast<float>(VIEWPORT_HEIGHT)
+    );
 
     size_t knight_texture_id, block_texture_id;
     try
@@ -31,20 +35,18 @@ bool Game::init()
     m_entities.emplace<Player>(knight);
     m_entities.emplace<Transform>(
         knight,
-        glm::vec3(RENDER_WIDTH / 2.0f, RENDER_HEIGHT / 2.0f, 0.0f),
-        glm::vec3(19.0f, 19.0f, 1.0f)
+        glm::vec3(VIEWPORT_WIDTH / 2.0f, VIEWPORT_HEIGHT / 2.0f, 0.0f)
     );
-    m_entities.emplace<Sprite>(knight, knight_texture_id);
+    m_entities.emplace<Sprite>(knight, knight_texture_id, glm::ivec2(19, 19));
 
     for (int i = 0; i < 10; ++i)
     {
         auto block = m_entities.create();
         m_entities.emplace<Transform>(
             block,
-            glm::vec3(RENDER_WIDTH / 2.0f + (i - 5.0f) * 19.0f * 2.0f, RENDER_HEIGHT / 2.0f, 0.0f),
-            glm::vec3(19.0f, 19.0f, 1.0f)
+            glm::vec3(VIEWPORT_WIDTH / 2.0f + (i - 5.0f) * 16.0f, VIEWPORT_HEIGHT / 2.0f, 0.0f)
         );
-        m_entities.emplace<Sprite>(block, block_texture_id);
+        m_entities.emplace<Sprite>(block, block_texture_id, glm::ivec2(16, 16));
     }
 
     return true;
@@ -53,17 +55,25 @@ bool Game::init()
 void Game::update(double delta_time)
 {
     float player_speed = 100.0;
-    auto players = m_entities.view<const Player, Transform>();
-    for (const auto [entity, transform] : players.each())
+    auto players = m_entities.view<const Player, Transform, Sprite>();
+    for (const auto [entity, transform, sprite] : players.each())
     {
         float hori = m_context->key_states[SDL_SCANCODE_D] - m_context->key_states[SDL_SCANCODE_A];
         float vert = m_context->key_states[SDL_SCANCODE_W] - m_context->key_states[SDL_SCANCODE_S];
         glm::vec3 dir(hori, vert, 0.0f);
-        if (glm::length2(dir) > 0)
+        if (glm::length2(dir) > 0.0f)
         {
             dir = glm::normalize(dir);
         }
         transform.position += dir * player_speed * static_cast<float>(delta_time);
+        if (dir.x > 0.0f)
+        {
+            sprite.flipped_horizontally = false;
+        }
+        else if (dir.x < 0.0f)
+        {
+            sprite.flipped_horizontally = true;
+        }
     }
 }
 

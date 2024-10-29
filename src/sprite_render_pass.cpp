@@ -169,6 +169,12 @@ void SpriteRenderPass::render(
             Uniforms uniforms{
                 .camera = camera,
                 .model = transform.to_matrix(),
+                .size_flipped = glm::vec4(
+                    static_cast<float>(sprite.size.x),
+                    static_cast<float>(sprite.size.y),
+                    sprite.flipped_horizontally ? -1.0 : 1.0,
+                    sprite.flipped_vertically ? -1.0 : 1.0
+                ),
             };
             SDL_PushGPUVertexUniformData(cmd_buffer, 0, &uniforms, sizeof(uniforms));
             SDL_GPUTextureSamplerBinding texture_sampler_binding =
