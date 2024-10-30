@@ -5,14 +5,11 @@
 #include "audio.hpp"
 #include "input.hpp"
 #include "physics.hpp"
-#include "registry.hpp"
-#include "texture.hpp"
+#include "renderer.hpp"
 
-struct Context
+struct Systems
 {
-    SDL_Window *window;
-    SDL_GPUDevice *device;
-    Registry<GPUTexture> texture_registry;
+    Renderer renderer;
     Input input;
     Physics physics;
     Audio audio;

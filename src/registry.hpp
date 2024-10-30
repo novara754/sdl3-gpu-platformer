@@ -19,4 +19,12 @@ class Registry
     {
         return m_storage[id];
     }
+
+    void for_each(auto f)
+    {
+        for (auto &x : m_storage)
+        {
+            f(x);
+        }
+    }
 };

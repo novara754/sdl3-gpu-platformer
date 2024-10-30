@@ -4,21 +4,20 @@
 #include <entt/entt.hpp>
 #include <spdlog/spdlog.h>
 
-#include "context.hpp"
 #include "game.hpp"
-#include "sprite_render_pass.hpp"
+#include "systems.hpp"
 
 constexpr int WIDTH = 1280;
 constexpr int HEIGHT = 736;
 
 class Engine
 {
-    Context m_context;
+    SDL_Window *m_window;
 
     double m_last_frame_time{0.0};
     double m_delta_time{0.0};
 
-    SpriteRenderPass m_sprite_render_pass;
+    Systems m_systems;
     Game m_game;
 
     Engine() = delete;
@@ -28,14 +27,18 @@ class Engine
     Engine &operator=(Engine &&) = delete;
 
   public:
-    Engine(SDL_Window *window, SDL_GPUDevice *device)
-        : m_context(window, device), m_sprite_render_pass(&m_context), m_game(&m_context)
+    Engine(SDL_Window *window) : m_window(window), m_game(this)
     {
     }
 
     [[nodiscard]] bool init();
 
     void run();
+
+    [[nodiscard]] Systems *get_systems()
+    {
+        return &m_systems;
+    }
 
   private:
     void render();

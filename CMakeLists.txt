@@ -28,6 +28,7 @@ add_executable(platformer
         src/physics.cpp
         src/audio.cpp
         src/input.cpp
+        src/renderer.cpp
         src/stb_impl.c
 )
 

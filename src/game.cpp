@@ -7,30 +7,23 @@
 #include <glm/gtx/norm.hpp>
 
 #include "ecs.hpp"
+#include "engine.hpp"
 
 bool Game::init()
 {
-    m_jump_wav = m_context->audio.new_source_from_wav("../../assets/jump.wav");
+    m_engine->get_systems()->renderer.set_camera(glm::ortho(0.0f, 640.0f, 0.0f, 368.0f));
 
-    m_camera = glm::ortho(
-        0.0f,
-        static_cast<float>(VIEWPORT_WIDTH),
-        0.0f,
-        static_cast<float>(VIEWPORT_HEIGHT)
-    );
+    m_jump_wav = m_engine->get_systems()->audio.new_source_from_wav("../../assets/jump.wav");
 
     size_t knight_texture_id, block_texture_id, bg_texture_id;
     try
     {
-        knight_texture_id = m_context->texture_registry.add(
-            GPUTexture::from_file(m_context->device, "../../assets/knight.png")
-        );
-        block_texture_id = m_context->texture_registry.add(
-            GPUTexture::from_file(m_context->device, "../../assets/block.png")
-        );
-        bg_texture_id = m_context->texture_registry.add(
-            GPUTexture::from_file(m_context->device, "../../assets/background.png")
-        );
+        knight_texture_id =
+            m_engine->get_systems()->renderer.new_texture_from_file("../../assets/knight.png");
+        block_texture_id =
+            m_engine->get_systems()->renderer.new_texture_from_file("../../assets/block.png");
+        bg_texture_id =
+            m_engine->get_systems()->renderer.new_texture_from_file("../../assets/background.png");
     }
     catch (std::exception &e)
     {
@@ -108,7 +101,7 @@ bool Game::init()
     auto colliders = m_entities.view<const Transform, Collider>();
     for (const auto [entity, transform, collider] : colliders.each())
     {
-        m_context->physics.add(transform, collider);
+        m_engine->get_systems()->physics.add(transform, collider);
     }
 
     return true;
@@ -119,15 +112,15 @@ void Game::update([[maybe_unused]] double delta_time)
     auto colliders = m_entities.view<Transform, const Collider>();
     for (const auto [entity, transform, collider] : colliders.each())
     {
-        transform.position = m_context->physics.get_position(collider);
+        transform.position = m_engine->get_systems()->physics.get_position(collider);
     }
 
     float player_speed = 400.0;
     auto players = m_entities.view<const Player, Collider, Sprite>();
     for (const auto [entity, collider, sprite] : players.each())
     {
-        float hori = m_context->input.is_pressed(SDL_SCANCODE_D) -
-                     m_context->input.is_pressed(SDL_SCANCODE_A);
+        float hori = m_engine->get_systems()->input.is_pressed(SDL_SCANCODE_D) -
+                     m_engine->get_systems()->input.is_pressed(SDL_SCANCODE_A);
         if (hori > 0.0f)
         {
             sprite.flipped_horizontally = false;
@@ -137,24 +130,25 @@ void Game::update([[maybe_unused]] double delta_time)
             sprite.flipped_horizontally = true;
         }
 
-        glm::vec2 velocity = m_context->physics.get_velocity(collider);
+        glm::vec2 velocity = m_engine->get_systems()->physics.get_velocity(collider);
         velocity.x = hori * player_speed;
 
-        std::optional<glm::vec2> contact_normal = m_context->physics.get_contact_normal(collider);
+        std::optional<glm::vec2> contact_normal =
+            m_engine->get_systems()->physics.get_contact_normal(collider);
         bool grounded =
             contact_normal.has_value() && contact_normal->y > 0.0f && contact_normal->x < 0.1;
         if (!grounded)
         {
             velocity.y -= 1000.0f * delta_time;
         }
-        else if (m_context->input.was_just_pressed(SDL_SCANCODE_SPACE))
+        else if (m_engine->get_systems()->input.was_just_pressed(SDL_SCANCODE_SPACE))
         {
             auto jump_sound = m_entities.create();
             m_entities.emplace<AudioPlayer>(jump_sound, m_jump_wav);
             velocity.y = 400.0f;
         }
 
-        m_context->physics.set_velocity(collider, velocity);
+        m_engine->get_systems()->physics.set_velocity(collider, velocity);
     }
 
     auto audio_players = m_entities.view<const AudioPlayer>();
@@ -163,11 +157,6 @@ void Game::update([[maybe_unused]] double delta_time)
         player.source->play();
         m_entities.destroy(entity);
     }
-}
-
-const glm::mat4 &Game::get_camera() const
-{
-    return m_camera;
 }
 
 const entt::registry &Game::get_entities() const

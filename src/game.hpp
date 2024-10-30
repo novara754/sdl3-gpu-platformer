@@ -4,7 +4,8 @@
 #include <glm/glm.hpp>
 
 #include "audio.hpp"
-#include "context.hpp"
+
+class Engine;
 
 class Game
 {
@@ -13,22 +14,19 @@ class Game
     static constexpr int VIEWPORT_HEIGHT = 368;
 
   private:
-    Context *m_context;
-    glm::mat4 m_camera;
+    Engine *m_engine;
     entt::registry m_entities;
 
     const AudioSource *m_jump_wav;
 
   public:
-    Game(Context *context) : m_context(context)
+    Game(Engine *engine) : m_engine(engine)
     {
     }
 
     bool init();
 
     void update(double delta_time);
-
-    const glm::mat4 &get_camera() const;
 
     const entt::registry &get_entities() const;
 };

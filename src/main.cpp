@@ -27,25 +27,8 @@ int main()
     }
     spdlog::trace("main: created sdl window");
 
-    SDL_GPUDevice *device = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, true, nullptr);
-    if (!device)
     {
-        spdlog::error("main: failed to create gpu device: {}", SDL_GetError());
-        SDL_DestroyWindow(window);
-        return 1;
-    }
-    spdlog::trace("main: created sdl gpu device");
-    spdlog::info("main: using graphics backend: {}", SDL_GetGPUDeviceDriver(device));
-
-    if (!SDL_ClaimWindowForGPUDevice(device, window))
-    {
-        spdlog::error("main: failed to claim window for gpu device: {}", SDL_GetError());
-        return 1;
-    }
-    spdlog::trace("main: claimed window for gpu device");
-
-    {
-        Engine engine(window, device);
+        Engine engine(window);
         if (engine.init())
         {
             engine.run();
@@ -56,7 +39,6 @@ int main()
         }
     }
 
-    SDL_DestroyGPUDevice(device);
     SDL_DestroyWindow(window);
 
     spdlog::trace("main: process terminating...");

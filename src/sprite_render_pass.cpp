@@ -6,13 +6,24 @@
 #include "SDL3/SDL_gpu.h"
 #include "ecs.hpp"
 #include "read_file.hpp"
+#include "renderer.hpp"
 #include "texture.hpp"
+
+void SpriteRenderPass::release()
+{
+    m_depth_texture.release(m_gpu_context->device);
+    spdlog::trace("SpriteRenderPass::~SpriteRenderPass: released depth texture");
+
+    SDL_ReleaseGPUGraphicsPipeline(m_gpu_context->device, m_pipeline);
+    spdlog::trace("SpriteRenderPass::~SpriteRenderPass: released sprite render pipeline");
+}
 
 bool SpriteRenderPass::init(
     SDL_GPUTextureFormat swapchain_texture_format, uint32_t surface_width, uint32_t surface_height
 )
 {
-    m_depth_texture = GPUTexture::depth_target(m_context->device, surface_width, surface_height);
+    m_depth_texture =
+        GPUTexture::depth_target(m_gpu_context->device, surface_width, surface_height);
 
     std::vector<uint8_t> vertex_shader_code, fragment_shader_code;
     try
@@ -40,7 +51,7 @@ bool SpriteRenderPass::init(
         .props = 0,
     };
     SDL_GPUShader *vertex_shader =
-        SDL_CreateGPUShader(m_context->device, &vertex_shader_create_info);
+        SDL_CreateGPUShader(m_gpu_context->device, &vertex_shader_create_info);
     if (!vertex_shader)
     {
         spdlog::error("SpriteRenderPass::init: failed to create vertex shader");
@@ -61,7 +72,7 @@ bool SpriteRenderPass::init(
         .props = 0,
     };
     SDL_GPUShader *fragment_shader =
-        SDL_CreateGPUShader(m_context->device, &fragment_shader_create_info);
+        SDL_CreateGPUShader(m_gpu_context->device, &fragment_shader_create_info);
     if (!fragment_shader)
     {
         spdlog::error("SpriteRenderPass::init: failed to create fragment shader");
@@ -138,7 +149,7 @@ bool SpriteRenderPass::init(
             },
         .props = 0,
     };
-    m_pipeline = SDL_CreateGPUGraphicsPipeline(m_context->device, &pipeline_create_info);
+    m_pipeline = SDL_CreateGPUGraphicsPipeline(m_gpu_context->device, &pipeline_create_info);
     if (!m_pipeline)
     {
         spdlog::error(
@@ -149,8 +160,8 @@ bool SpriteRenderPass::init(
     }
     spdlog::trace("SpriteRenderPass::init: created graphics pipeline");
 
-    SDL_ReleaseGPUShader(m_context->device, vertex_shader);
-    SDL_ReleaseGPUShader(m_context->device, fragment_shader);
+    SDL_ReleaseGPUShader(m_gpu_context->device, vertex_shader);
+    SDL_ReleaseGPUShader(m_gpu_context->device, fragment_shader);
 
     return true;
 }
@@ -176,7 +187,7 @@ void SpriteRenderPass::render(
         .padding2 = 0,
     };
     SDL_GPUDepthStencilTargetInfo depth_stencil_info{
-        .texture = m_depth_texture.get_texture(),
+        .texture = m_depth_texture.texture,
         .clear_depth = 1.0f,
         .load_op = SDL_GPU_LOADOP_CLEAR,
         .store_op = SDL_GPU_STOREOP_STORE,
@@ -211,7 +222,7 @@ void SpriteRenderPass::render(
             };
             SDL_PushGPUVertexUniformData(cmd_buffer, 0, &uniforms, sizeof(uniforms));
             SDL_GPUTextureSamplerBinding texture_sampler_binding =
-                m_context->texture_registry.get(sprite.texture_id).get_binding();
+                m_gpu_context->textures.get(sprite.texture_id).get_binding();
             SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
             SDL_DrawGPUPrimitives(render_pass, 6, 1, 0, 0);
         }

@@ -5,7 +5,9 @@
 #include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
 
-#include "context.hpp"
+#include "texture.hpp"
+
+struct GPUContext;
 
 class SpriteRenderPass
 {
@@ -16,34 +18,26 @@ class SpriteRenderPass
         glm::vec2 flipped;
     };
 
-    Context *m_context;
+    GPUContext *m_gpu_context;
     GPUTexture m_depth_texture;
     SDL_GPUGraphicsPipeline *m_pipeline{nullptr};
 
-    SpriteRenderPass() = delete;
     SpriteRenderPass(const SpriteRenderPass &) = delete;
     SpriteRenderPass &operator=(const SpriteRenderPass &) = delete;
     SpriteRenderPass(SpriteRenderPass &&) = delete;
     SpriteRenderPass &operator=(SpriteRenderPass &&) = delete;
 
   public:
-    SpriteRenderPass(Context *context) : m_context(context)
+    SpriteRenderPass(GPUContext *gpu_context) : m_gpu_context(gpu_context)
     {
-    }
-
-    ~SpriteRenderPass()
-    {
-        if (m_pipeline)
-        {
-            SDL_ReleaseGPUGraphicsPipeline(m_context->device, m_pipeline);
-            spdlog::trace("SpriteRenderPass::~SpriteRenderPass: released sprite render pipeline");
-        }
     }
 
     [[nodiscard]] bool init(
         SDL_GPUTextureFormat swapchain_texture_format, uint32_t surface_width,
         uint32_t surface_height
     );
+
+    void release();
 
     void render(
         SDL_GPUCommandBuffer *cmd_buffer, SDL_GPUTexture *target_texture, const glm::mat4 &camera,

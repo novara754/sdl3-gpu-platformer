@@ -2,21 +2,15 @@
 
 #include <SDL3/SDL_gpu.h>
 
-#include "audio.hpp"
-
 bool Engine::init()
 {
-    if (!m_sprite_render_pass.init(
-            SDL_GetGPUSwapchainTextureFormat(m_context.device, m_context.window),
-            WIDTH,
-            HEIGHT
-        ))
+    if (!m_systems.renderer.init(m_window))
     {
-        spdlog::error("Engine::init: failed to initialize sprite render pass");
+        spdlog::error("Engine::init: failed to initialize renderer");
         return false;
     }
 
-    if (!m_context.audio.init())
+    if (!m_systems.audio.init())
     {
         spdlog::error("Engine::init: failed to initialize audio");
         return false;
@@ -33,41 +27,15 @@ bool Engine::init()
 
 void Engine::render()
 {
-    SDL_GPUCommandBuffer *cmd_buf = SDL_AcquireGPUCommandBuffer(m_context.device);
-    if (!cmd_buf)
-    {
-        spdlog::error("Engine::render: failed to acquire gpu command buffer: {}", SDL_GetError());
-        return;
-    }
-
-    SDL_GPUTexture *swapchain_texture;
-    if (!SDL_AcquireGPUSwapchainTexture(
-            cmd_buf,
-            m_context.window,
-            &swapchain_texture,
-            nullptr,
-            nullptr
-        ))
-    {
-        spdlog::error(
-            "Engine::render: failed to acquire gpu swapchain texture: {}",
-            SDL_GetError()
-        );
-        return;
-    }
-
-    m_sprite_render_pass
-        .render(cmd_buf, swapchain_texture, m_game.get_camera(), m_game.get_entities());
-
-    SDL_SubmitGPUCommandBuffer(cmd_buf);
+    m_systems.renderer.render(m_game.get_entities());
 }
 
 void Engine::update()
 {
-    m_context.physics.update(m_delta_time);
+    m_systems.physics.update(m_delta_time);
     m_game.update(m_delta_time);
 
-    m_context.input.post_update();
+    m_systems.input.post_update();
 }
 
 void Engine::run()
@@ -90,7 +58,7 @@ void Engine::run()
             }
             else if (event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP)
             {
-                m_context.input.handle_event(event.key);
+                m_systems.input.handle_event(event.key);
             }
         }
 

@@ -7,6 +7,7 @@
 
 #include "audio.hpp"
 #include "physics.hpp"
+#include "renderer.hpp"
 
 struct Transform
 {
@@ -24,7 +25,7 @@ struct Transform
 
 struct Sprite
 {
-    size_t texture_id;
+    TextureId texture_id;
     glm::ivec2 size;
     int z_index{0};
     bool flipped_horizontally{false};

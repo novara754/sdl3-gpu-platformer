@@ -81,7 +81,7 @@ GPUTexture GPUTexture::from_file(SDL_GPUDevice *device, const std::string &path)
         throw std::runtime_error("failed to create sampler");
     }
 
-    return GPUTexture(device, texture, sampler, path);
+    return GPUTexture{device, texture, sampler};
 }
 
 [[nodiscard]] GPUTexture
@@ -108,7 +108,7 @@ GPUTexture::depth_target(SDL_GPUDevice *device, uint32_t width, uint32_t height)
         throw std::runtime_error("failed to create depth texture");
     }
 
-    return GPUTexture(device, texture, nullptr, "depth texture");
+    return GPUTexture{device, texture, nullptr};
 }
 
 bool copy_to_texture(
