@@ -9,7 +9,7 @@
 #include "sprite_render_pass.hpp"
 
 constexpr int WIDTH = 1280;
-constexpr int HEIGHT = 720;
+constexpr int HEIGHT = 736;
 
 class Engine
 {

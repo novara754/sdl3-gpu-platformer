@@ -11,6 +11,7 @@ Physics::Physics()
     world_def.gravity.y = -10.0f;
     world_def.maximumLinearVelocity = 1'000'000.0f;
     world_def.restitutionThreshold = world_def.maximumLinearVelocity;
+    world_def.contactPushoutVelocity = 1'000.0f;
     m_world_id = b2CreateWorld(&world_def);
 }
 
@@ -37,6 +38,7 @@ void Physics::add(const Transform &transform, Collider &collider)
     b2BodyId body_id = b2CreateBody(m_world_id, &body_def);
 
     b2ShapeDef shape_def = b2DefaultShapeDef();
+    shape_def.density = 1'000.0f;
     switch (collider.shape.type)
     {
         case Collider::Shape::Type::rectangle: {

@@ -65,12 +65,34 @@ bool Game::init()
                 .shape = Collider::Shape::rectangle(glm::vec2(16.0, 16.0)),
             }
         );
+
+        block = m_entities.create();
+        m_entities.emplace<Transform>(block, glm::vec2(x, VIEWPORT_HEIGHT - 16.0f));
+        m_entities.emplace<Sprite>(block, block_texture_id, glm::ivec2(16, 16));
+        m_entities.emplace<Collider>(
+            block,
+            Collider{
+                .type = Collider::Type::statik,
+                .shape = Collider::Shape::rectangle(glm::vec2(16.0, 16.0)),
+            }
+        );
     }
 
-    for (int x = 32; x < VIEWPORT_WIDTH - 32; x += 16)
+    for (int y = 16; y < VIEWPORT_HEIGHT; y += 16)
     {
         auto block = m_entities.create();
-        m_entities.emplace<Transform>(block, glm::vec2(x, 64.0f));
+        m_entities.emplace<Transform>(block, glm::vec2(0.0f, y));
+        m_entities.emplace<Sprite>(block, block_texture_id, glm::ivec2(16, 16));
+        m_entities.emplace<Collider>(
+            block,
+            Collider{
+                .type = Collider::Type::statik,
+                .shape = Collider::Shape::rectangle(glm::vec2(16.0, 16.0)),
+            }
+        );
+
+        block = m_entities.create();
+        m_entities.emplace<Transform>(block, glm::vec2(VIEWPORT_WIDTH - 16.0f, y));
         m_entities.emplace<Sprite>(block, block_texture_id, glm::ivec2(16, 16));
         m_entities.emplace<Collider>(
             block,
