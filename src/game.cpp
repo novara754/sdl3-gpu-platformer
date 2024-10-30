@@ -10,6 +10,8 @@
 
 bool Game::init()
 {
+    m_jump_wav = m_context->audio.new_source_from_wav("../../assets/jump.wav");
+
     m_camera = glm::ortho(
         0.0f,
         static_cast<float>(VIEWPORT_WIDTH),
@@ -138,17 +140,28 @@ void Game::update([[maybe_unused]] double delta_time)
         velocity.x = hori * player_speed;
 
         std::optional<glm::vec2> contact_normal = m_context->physics.get_contact_normal(collider);
-        bool grounded = contact_normal.has_value() && contact_normal->y > 0.0f;
+        bool grounded =
+            contact_normal.has_value() && contact_normal->y > 0.0f && contact_normal->x < 0.1;
         if (!grounded)
         {
             velocity.y -= 1000.0f * delta_time;
         }
         else if (m_context->key_states[SDL_SCANCODE_SPACE])
         {
+            spdlog::debug("jump!");
+            auto jump_sound = m_entities.create();
+            m_entities.emplace<AudioPlayer>(jump_sound, m_jump_wav);
             velocity.y = 400.0f;
         }
 
         m_context->physics.set_velocity(collider, velocity);
+    }
+
+    auto audio_players = m_entities.view<const AudioPlayer>();
+    for (const auto [entity, player] : audio_players.each())
+    {
+        player.source->play();
+        m_entities.destroy(entity);
     }
 }
 

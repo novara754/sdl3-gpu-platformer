@@ -12,12 +12,12 @@ int main()
     SDL_SetAppMetadata("Platformer", "0.1", nullptr);
     spdlog::trace("main: set sdl app metadata");
 
-    if (!SDL_Init(SDL_INIT_VIDEO))
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
     {
-        spdlog::error("main: failed to initialize sdl video subsystem: {}", SDL_GetError());
+        spdlog::error("main: failed to initialize sdl: {}", SDL_GetError());
         return 1;
     }
-    spdlog::trace("main: initialized sdl video subsystem");
+    spdlog::trace("main: initialized sdl video and audio subsystem");
 
     SDL_Window *window = SDL_CreateWindow("Platformer", WIDTH, HEIGHT, 0);
     if (!window)

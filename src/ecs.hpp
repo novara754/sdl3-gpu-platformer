@@ -5,6 +5,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
 
+#include "audio.hpp"
 #include "physics.hpp"
 
 struct Transform
@@ -79,4 +80,9 @@ struct Collider
 
 struct Player
 {
+};
+
+struct AudioPlayer
+{
+    const AudioSource *source;
 };

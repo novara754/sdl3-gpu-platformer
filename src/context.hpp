@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 
+#include "audio.hpp"
 #include "physics.hpp"
 #include "registry.hpp"
 #include "texture.hpp"
@@ -13,4 +14,5 @@ struct Context
     Registry<GPUTexture> texture_registry;
     bool key_states[SDL_SCANCODE_COUNT]{};
     Physics physics;
+    Audio audio;
 };

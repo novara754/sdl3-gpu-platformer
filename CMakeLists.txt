@@ -26,6 +26,7 @@ add_executable(platformer
         src/texture.cpp
         src/game.cpp
         src/physics.cpp
+        src/audio.cpp
         src/stb_impl.c
 )
 

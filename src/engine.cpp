@@ -2,6 +2,8 @@
 
 #include <SDL3/SDL_gpu.h>
 
+#include "audio.hpp"
+
 bool Engine::init()
 {
     if (!m_sprite_render_pass.init(
@@ -11,6 +13,12 @@ bool Engine::init()
         ))
     {
         spdlog::error("Engine::init: failed to initialize sprite render pass");
+        return false;
+    }
+
+    if (!m_context.audio.init())
+    {
+        spdlog::error("Engine::init: failed to initialize audio");
         return false;
     }
 

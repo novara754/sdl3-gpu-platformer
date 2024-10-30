@@ -3,6 +3,7 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 
+#include "audio.hpp"
 #include "context.hpp"
 
 class Game
@@ -15,6 +16,8 @@ class Game
     Context *m_context;
     glm::mat4 m_camera;
     entt::registry m_entities;
+
+    const AudioSource *m_jump_wav;
 
   public:
     Game(Context *context) : m_context(context)
