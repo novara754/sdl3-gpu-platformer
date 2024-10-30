@@ -66,6 +66,8 @@ void Engine::update()
 {
     m_context.physics.update(m_delta_time);
     m_game.update(m_delta_time);
+
+    m_context.input.post_update();
 }
 
 void Engine::run()
@@ -80,7 +82,7 @@ void Engine::run()
         m_last_frame_time = now;
 
         SDL_Event event;
-        while (SDL_PollEvent(&event))
+        if (SDL_PollEvent(&event))
         {
             if (event.type == SDL_EVENT_QUIT)
             {
@@ -88,7 +90,7 @@ void Engine::run()
             }
             else if (event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP)
             {
-                m_context.key_states[event.key.scancode] = event.type == SDL_EVENT_KEY_DOWN;
+                m_context.input.handle_event(event.key);
             }
         }
 

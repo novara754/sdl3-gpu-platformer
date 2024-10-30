@@ -126,7 +126,8 @@ void Game::update([[maybe_unused]] double delta_time)
     auto players = m_entities.view<const Player, Collider, Sprite>();
     for (const auto [entity, collider, sprite] : players.each())
     {
-        float hori = m_context->key_states[SDL_SCANCODE_D] - m_context->key_states[SDL_SCANCODE_A];
+        float hori = m_context->input.is_pressed(SDL_SCANCODE_D) -
+                     m_context->input.is_pressed(SDL_SCANCODE_A);
         if (hori > 0.0f)
         {
             sprite.flipped_horizontally = false;
@@ -146,9 +147,8 @@ void Game::update([[maybe_unused]] double delta_time)
         {
             velocity.y -= 1000.0f * delta_time;
         }
-        else if (m_context->key_states[SDL_SCANCODE_SPACE])
+        else if (m_context->input.was_just_pressed(SDL_SCANCODE_SPACE))
         {
-            spdlog::debug("jump!");
             auto jump_sound = m_entities.create();
             m_entities.emplace<AudioPlayer>(jump_sound, m_jump_wav);
             velocity.y = 400.0f;
