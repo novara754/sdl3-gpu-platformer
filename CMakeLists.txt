@@ -70,6 +70,11 @@ endfunction()
 
 compile_shader(platformer ENV vulkan1.1 FORMAT bin
         SOURCES
-        src/sprite.frag
-        src/sprite.vert
+        shaders/sprite.frag
+        shaders/sprite.vert
+)
+
+add_custom_command(
+        TARGET platformer POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy_directory "${CMAKE_SOURCE_DIR}/assets/" "${CMAKE_CURRENT_BINARY_DIR}/assets"
 )

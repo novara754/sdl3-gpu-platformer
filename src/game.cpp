@@ -13,17 +13,17 @@ bool Game::init()
 {
     m_engine->get_systems()->renderer.set_camera(glm::ortho(0.0f, 640.0f, 0.0f, 368.0f));
 
-    m_jump_wav = m_engine->get_systems()->audio.new_source_from_wav("../../assets/jump.wav");
+    m_jump_wav = m_engine->get_systems()->audio.new_source_from_wav("./assets/jump.wav");
 
     size_t knight_texture_id, block_texture_id, bg_texture_id;
     try
     {
         knight_texture_id =
-            m_engine->get_systems()->renderer.new_texture_from_file("../../assets/knight.png");
+            m_engine->get_systems()->renderer.new_texture_from_file("./assets/knight.png");
         block_texture_id =
-            m_engine->get_systems()->renderer.new_texture_from_file("../../assets/block.png");
+            m_engine->get_systems()->renderer.new_texture_from_file("./assets/block.png");
         bg_texture_id =
-            m_engine->get_systems()->renderer.new_texture_from_file("../../assets/background.png");
+            m_engine->get_systems()->renderer.new_texture_from_file("./assets/background.png");
     }
     catch (std::exception &e)
     {

@@ -28,8 +28,8 @@ bool SpriteRenderPass::init(
     std::vector<uint8_t> vertex_shader_code, fragment_shader_code;
     try
     {
-        vertex_shader_code = read_file("../src/sprite.vert.bin");
-        fragment_shader_code = read_file("../src/sprite.frag.bin");
+        vertex_shader_code = read_file("./shaders/sprite.vert.bin");
+        fragment_shader_code = read_file("./shaders/sprite.frag.bin");
     }
     catch (std::exception &e)
     {
