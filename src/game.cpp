@@ -47,7 +47,7 @@ bool Game::init()
     auto pickup_join_wav =
         m_engine->get_systems()->audio.new_source_from_wav("./assets/pickup_coin.wav");
 
-    if (!m_jump_wav || !m_pickup_coin_wav)
+    if (!jump_wav || !pickup_join_wav)
     {
         spdlog::error("Game::init: failed to load wav files");
         return false;
