@@ -13,9 +13,18 @@ bool Game::init()
 {
     m_engine->get_systems()->renderer.set_camera(glm::ortho(0.0f, 640.0f, 0.0f, 368.0f));
 
-    m_jump_wav = m_engine->get_systems()->audio.new_source_from_wav("./assets/jump.wav");
-    m_pickup_coin_wav =
+    auto jump_wav = m_engine->get_systems()->audio.new_source_from_wav("./assets/jump.wav");
+    auto pickup_join_wav =
         m_engine->get_systems()->audio.new_source_from_wav("./assets/pickup_coin.wav");
+
+    if (!m_jump_wav || !m_pickup_coin_wav)
+    {
+        spdlog::error("Game::init: failed to load wav files");
+        return false;
+    }
+
+    m_jump_wav = *jump_wav;
+    m_pickup_coin_wav = *pickup_join_wav;
 
     size_t knight_texture_id, block_texture_id, bg_texture_id, coin_texture_id;
     try
@@ -190,7 +199,7 @@ void Game::update([[maybe_unused]] double delta_time)
     auto audio_players = m_entities.view<const AudioPlayer>();
     for (const auto [entity, player] : audio_players.each())
     {
-        player.source->play();
+        m_engine->get_systems()->audio.play(player.source);
         m_entities.destroy(entity);
     }
 }

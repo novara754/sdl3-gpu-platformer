@@ -32,7 +32,7 @@ bool Audio::init()
     return true;
 }
 
-[[nodiscard]] const AudioSource *Audio::new_source_from_wav(const std::string &path)
+[[nodiscard]] std::optional<AudioSourceId> Audio::new_source_from_wav(const std::string &path)
 {
     SDL_AudioSpec spec;
     uint8_t *data;
@@ -40,7 +40,7 @@ bool Audio::init()
     if (!SDL_LoadWAV(path.c_str(), &spec, &data, &len))
     {
         spdlog::error("Audio::new_source_from_wav: failed to open wav: {}", SDL_GetError());
-        return nullptr;
+        return {};
     }
 
     SDL_AudioStream *stream = SDL_CreateAudioStream(&spec, &m_device_spec);
@@ -51,7 +51,7 @@ bool Audio::init()
             "Audio::new_source_from_wav: failed to create audio stream: {}",
             SDL_GetError()
         );
-        return nullptr;
+        return {};
     }
 
     if (!SDL_BindAudioStream(m_device, stream))
@@ -62,10 +62,18 @@ bool Audio::init()
             "Audio::new_source_from_wav: failed to bind audio stream: {}",
             SDL_GetError()
         );
-        return nullptr;
+        return {};
     }
 
     m_audio_sources.emplace_back(data, len, stream);
+    return m_audio_sources.size() - 1;
+}
 
-    return &m_audio_sources.back();
+void Audio::play(AudioSourceId id) const
+{
+    const auto &source = m_audio_sources[id];
+    if (!SDL_PutAudioStreamData(source.stream, source.data, source.data_len))
+    {
+        spdlog::error("AudioSource::play: failed to play audio: {}", SDL_GetError());
+    }
 }

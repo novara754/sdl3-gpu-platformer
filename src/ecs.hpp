@@ -86,7 +86,7 @@ struct Player
 
 struct AudioPlayer
 {
-    const AudioSource *source;
+    AudioSourceId source;
 };
 
 struct Coin

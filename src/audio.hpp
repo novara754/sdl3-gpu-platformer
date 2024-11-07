@@ -1,20 +1,18 @@
 #pragma once
 
+#include <optional>
 #include <string>
 
 #include <SDL3/SDL_audio.h>
 #include <spdlog/spdlog.h>
+
+typedef size_t AudioSourceId;
 
 struct AudioSource
 {
     uint8_t *data;
     uint32_t data_len;
     SDL_AudioStream *stream;
-
-    void play() const
-    {
-        SDL_PutAudioStreamData(this->stream, this->data, this->data_len);
-    }
 };
 
 class Audio
@@ -36,5 +34,7 @@ class Audio
 
     bool init();
 
-    [[nodiscard]] const AudioSource *new_source_from_wav(const std::string &path);
+    [[nodiscard]] std::optional<AudioSourceId> new_source_from_wav(const std::string &path);
+
+    void play(AudioSourceId id) const;
 };

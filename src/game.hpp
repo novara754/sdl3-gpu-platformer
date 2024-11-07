@@ -17,8 +17,8 @@ class Game
     Engine *m_engine;
     entt::registry m_entities;
 
-    const AudioSource *m_jump_wav;
-    const AudioSource *m_pickup_coin_wav;
+    AudioSourceId m_jump_wav;
+    AudioSourceId m_pickup_coin_wav;
 
   public:
     Game(Engine *engine) : m_engine(engine)
