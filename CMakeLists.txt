@@ -1,20 +1,61 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.11)
 project(platformer)
+
+include(FetchContent)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 23)
 
 set(SDL_STATIC ON)
-set(SPDLOG_FMT_EXTERNAL ON CACHE BOOL "" FORCE)
-set(SPDLOG_WCHAR_TO_UTF8_SUPPORT ON CACHE BOOL "" FORCE)
+set(SDL_SHARED OFF)
 
-add_subdirectory(vendor/sdl3 SYSTEM)
-add_subdirectory(vendor/box2d SYSTEM)
+FetchContent_Declare(
+        spdlog
+        SYSTEM
+        GIT_REPOSITORY "https://github.com/gabime/spdlog"
+        GIT_TAG "v1.14.1"
+)
+FetchContent_MakeAvailable(spdlog)
 
-find_package(fmt CONFIG REQUIRED)
-find_package(spdlog CONFIG REQUIRED)
-find_package(glm CONFIG REQUIRED)
-find_package(Stb REQUIRED)
+FetchContent_Declare(
+        SDL3
+        SYSTEM
+        GIT_REPOSITORY "https://github.com/libsdl-org/SDL"
+        GIT_TAG "68cc173d9293e890ba93feaed1d3dc17742aa9b3"
+)
+FetchContent_MakeAvailable(SDL3)
+
+FetchContent_Declare(
+        glm
+        SYSTEM
+        GIT_REPOSITORY "https://github.com/g-truc/glm"
+        GIT_TAG "1.0.1"
+)
+FetchContent_MakeAvailable(glm)
+
+FetchContent_Declare(
+        stb
+        SYSTEM
+        GIT_REPOSITORY "https://github.com/nothings/stb"
+        GIT_TAG "2e2bef463a5b53ddf8bb788e25da6b8506314c08"
+)
+FetchContent_MakeAvailable(stb)
+
+FetchContent_Declare(
+        box2d
+        SYSTEM
+        GIT_REPOSITORY "https://github.com/erincatto/box2d"
+        GIT_TAG "v3.0.0"
+)
+FetchContent_MakeAvailable(box2d)
+
+FetchContent_Declare(
+        entt
+        SYSTEM
+        GIT_REPOSITORY "https://github.com/skypjack/entt"
+        GIT_TAG "v3.14.0"
+)
+FetchContent_MakeAvailable(entt)
 
 find_program(glslc_executable NAMES glslc HINTS Vulkan::glslc)
 
@@ -34,18 +75,18 @@ add_executable(platformer
 
 target_compile_definitions(platformer PRIVATE
         _CRT_SECURE_NO_WARNINGS
-        GLFW_INCLUDE_NONE
         GLM_FORCE_EXPLICIT_CTOR
+        GLM_ENABLE_EXPERIMENTAL
 )
 
 target_compile_options(platformer PRIVATE -Wall -Werror -Wextra -Wpedantic)
 
-target_include_directories(platformer PRIVATE ${Stb_INCLUDE_DIR})
-target_link_libraries(platformer PRIVATE fmt::fmt)
+target_include_directories(platformer PRIVATE ${stb_SOURCE_DIR})
 target_link_libraries(platformer PRIVATE spdlog::spdlog)
 target_link_libraries(platformer PRIVATE glm::glm)
 target_link_libraries(platformer PRIVATE SDL3::SDL3-static)
-target_link_libraries(platformer PRIVATE box2d::box2d)
+target_link_libraries(platformer PRIVATE box2d)
+target_link_libraries(platformer PRIVATE EnTT::EnTT)
 
 function(compile_shader target)
         cmake_parse_arguments(PARSE_ARGV 1 arg "" "ENV;FORMAT" "SOURCES")

@@ -1,9 +1,0 @@
-[submodule "vendor/sdl3"]
-	path = vendor/sdl3
-	url = https://github.com/libsdl-org/SDL
-[submodule "vendor/vcpkg"]
-	path = vendor/vcpkg
-	url = https://github.com/microsoft/vcpkg
-[submodule "vendor/box2d"]
-	path = vendor/box2d
-	url = https://github.com/erincatto/box2d
