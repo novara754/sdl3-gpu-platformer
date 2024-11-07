@@ -14,6 +14,7 @@ FetchContent_Declare(
         SYSTEM
         GIT_REPOSITORY "https://github.com/gabime/spdlog"
         GIT_TAG "v1.14.1"
+        EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(spdlog)
 
@@ -22,6 +23,7 @@ FetchContent_Declare(
         SYSTEM
         GIT_REPOSITORY "https://github.com/libsdl-org/SDL"
         GIT_TAG "68cc173d9293e890ba93feaed1d3dc17742aa9b3"
+        EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(SDL3)
 
@@ -30,6 +32,7 @@ FetchContent_Declare(
         SYSTEM
         GIT_REPOSITORY "https://github.com/g-truc/glm"
         GIT_TAG "1.0.1"
+        EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(glm)
 
@@ -38,6 +41,7 @@ FetchContent_Declare(
         SYSTEM
         GIT_REPOSITORY "https://github.com/nothings/stb"
         GIT_TAG "2e2bef463a5b53ddf8bb788e25da6b8506314c08"
+        EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(stb)
 
@@ -46,6 +50,7 @@ FetchContent_Declare(
         SYSTEM
         GIT_REPOSITORY "https://github.com/erincatto/box2d"
         GIT_TAG "v3.0.0"
+        EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(box2d)
 
@@ -54,6 +59,7 @@ FetchContent_Declare(
         SYSTEM
         GIT_REPOSITORY "https://github.com/skypjack/entt"
         GIT_TAG "v3.14.0"
+        EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(entt)
 
@@ -95,7 +101,6 @@ function(compile_shader target)
                 add_custom_command(
                         OUTPUT ${source}.${arg_FORMAT}
                         DEPENDS ${source}
-
                         DEPFILE ${source}.d
                         COMMAND
                         ${glslc_executable}
@@ -106,6 +111,7 @@ function(compile_shader target)
                         ${CMAKE_CURRENT_SOURCE_DIR}/${source}
                 )
                 target_sources(${target} PRIVATE ${source}.${arg_FORMAT})
+                install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${source}.${arg_FORMAT}" DESTINATION "${CMAKE_INSTALL_PREFIX}/shaders")
         endforeach()
 endfunction()
 
@@ -114,6 +120,9 @@ compile_shader(platformer ENV vulkan1.1 FORMAT bin
         shaders/sprite.frag
         shaders/sprite.vert
 )
+
+install(TARGETS platformer RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
+install(DIRECTORY assets DESTINATION "${CMAKE_INSTALL_PREFIX}")
 
 add_custom_command(
         TARGET platformer POST_BUILD

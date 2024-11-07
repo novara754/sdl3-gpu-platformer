@@ -7,8 +7,8 @@
   },
   "configurePresets": [
     {
-      "name": "Debug",
-      "displayName": "Debug",
+      "name": "Ninja",
+      "displayName": "Ninja",
       "description": "Configure Ninja project files for all configurations",
       "binaryDir": "${sourceDir}/build/",
       "generator": "Ninja Multi-Config"
@@ -17,10 +17,17 @@
   "buildPresets": [
     {
       "name": "Debug",
-      "configurePreset": "Debug",
+      "configurePreset": "Ninja",
       "displayName": "Build (Debug)",
-      "description": "Build with Ninja/vcpkg (Debug)",
+      "description": "Build with Ninja (Debug)",
       "configuration": "Debug"
+    },
+    {
+      "name": "Release",
+      "configurePreset": "Ninja",
+      "displayName": "Build (Release)",
+      "description": "Build with Ninja (Release)",
+      "configuration": "Release"
     }
   ]
 }
