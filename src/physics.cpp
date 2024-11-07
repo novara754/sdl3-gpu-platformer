@@ -55,8 +55,14 @@ void Physics::add(const Transform &transform, Collider &collider)
             break;
         }
     }
+    shape_def.isSensor = collider.overlap_only;
 
     collider.id = body_id;
+}
+
+void Physics::remove(const Collider &collider)
+{
+    b2DestroyBody(*collider.id);
 }
 
 void Physics::update(double delta_time)
@@ -87,6 +93,20 @@ glm::vec2 Physics::get_velocity(const Collider &collider) const
     if (b2Body_GetContactData(collider.id.value(), &data, 1) > 0)
     {
         return glm::vec2(data.manifold.normal.x, data.manifold.normal.y);
+    }
+    else
+    {
+        return {};
+    }
+}
+
+[[nodiscard]] std::optional<PhysicsBodyId> Physics::get_collision_other(const Collider &collider
+) const
+{
+    b2ContactData data;
+    if (b2Body_GetContactData(collider.id.value(), &data, 1) > 0)
+    {
+        return b2Shape_GetBody(data.shapeIdB);
     }
     else
     {

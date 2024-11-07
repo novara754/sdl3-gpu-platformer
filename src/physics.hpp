@@ -1,5 +1,6 @@
 #pragma once
 
+#include <box2d/id.h>
 #include <optional>
 
 #include <box2d/box2d.h>
@@ -24,6 +25,7 @@ class Physics
     ~Physics();
 
     void add(const Transform &transform, Collider &collider);
+    void remove(const Collider &collider);
 
     void update(double delta_time);
 
@@ -33,4 +35,11 @@ class Physics
     [[nodiscard]] glm::vec2 get_velocity(const Collider &collider) const;
 
     [[nodiscard]] std::optional<glm::vec2> get_contact_normal(const Collider &collider) const;
+
+    [[nodiscard]] std::optional<PhysicsBodyId> get_collision_other(const Collider &collider) const;
 };
+
+inline bool operator==(const PhysicsBodyId &a, const PhysicsBodyId &b)
+{
+    return B2_ID_EQUALS(a, b);
+}

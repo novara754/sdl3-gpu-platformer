@@ -77,6 +77,7 @@ struct Collider
     Shape shape;
     glm::vec2 velocity{0.0f};
     bool gravity{true};
+    bool overlap_only{false};
 };
 
 struct Player
@@ -86,4 +87,8 @@ struct Player
 struct AudioPlayer
 {
     const AudioSource *source;
+};
+
+struct Coin
+{
 };

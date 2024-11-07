@@ -14,8 +14,10 @@ bool Game::init()
     m_engine->get_systems()->renderer.set_camera(glm::ortho(0.0f, 640.0f, 0.0f, 368.0f));
 
     m_jump_wav = m_engine->get_systems()->audio.new_source_from_wav("./assets/jump.wav");
+    m_pickup_coin_wav =
+        m_engine->get_systems()->audio.new_source_from_wav("./assets/pickup_coin.wav");
 
-    size_t knight_texture_id, block_texture_id, bg_texture_id;
+    size_t knight_texture_id, block_texture_id, bg_texture_id, coin_texture_id;
     try
     {
         knight_texture_id =
@@ -24,6 +26,8 @@ bool Game::init()
             m_engine->get_systems()->renderer.new_texture_from_file("./assets/block.png");
         bg_texture_id =
             m_engine->get_systems()->renderer.new_texture_from_file("./assets/background.png");
+        coin_texture_id =
+            m_engine->get_systems()->renderer.new_texture_from_file("./assets/coin.png");
     }
     catch (std::exception &e)
     {
@@ -98,6 +102,19 @@ bool Game::init()
         );
     }
 
+    auto coin = m_entities.create();
+    m_entities.emplace<Coin>(coin);
+    m_entities.emplace<Transform>(coin, glm::vec2(VIEWPORT_WIDTH / 2.0f, 32.0f));
+    m_entities.emplace<Sprite>(coin, coin_texture_id, glm::ivec2(16, 16));
+    m_entities.emplace<Collider>(
+        coin,
+        Collider{
+            .type = Collider::Type::statik,
+            .shape = Collider::Shape::circle(8.0f),
+            .overlap_only = true,
+        }
+    );
+
     auto colliders = m_entities.view<const Transform, Collider>();
     for (const auto [entity, transform, collider] : colliders.each())
     {
@@ -115,8 +132,28 @@ void Game::update([[maybe_unused]] double delta_time)
         transform.position = m_engine->get_systems()->physics.get_position(collider);
     }
 
-    float player_speed = 400.0;
     auto players = m_entities.view<const Player, Collider, Sprite>();
+
+    auto coins = m_entities.view<const Coin, const Collider>();
+    for (const auto [entity, collider] : coins.each())
+    {
+        auto other_id = m_engine->get_systems()->physics.get_collision_other(collider);
+
+        if (other_id)
+        {
+            for (const auto [player_entity, player_collider, player_sprite] : players.each())
+            {
+                if (*other_id == *player_collider.id)
+                {
+                    m_entities.destroy(entity);
+                    m_engine->get_systems()->physics.remove(collider);
+                    m_entities.emplace<AudioPlayer>(m_entities.create(), m_pickup_coin_wav);
+                }
+            }
+        }
+    }
+
+    float player_speed = 400.0;
     for (const auto [entity, collider, sprite] : players.each())
     {
         float hori = m_engine->get_systems()->input.is_pressed(SDL_SCANCODE_D) -
@@ -143,8 +180,7 @@ void Game::update([[maybe_unused]] double delta_time)
         }
         else if (m_engine->get_systems()->input.was_just_pressed(SDL_SCANCODE_SPACE))
         {
-            auto jump_sound = m_entities.create();
-            m_entities.emplace<AudioPlayer>(jump_sound, m_jump_wav);
+            m_entities.emplace<AudioPlayer>(m_entities.create(), m_jump_wav);
             velocity.y = 400.0f;
         }
 
