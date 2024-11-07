@@ -2,6 +2,7 @@
 
 #include <box2d/box2d.h>
 #include <box2d/math_functions.h>
+#include <box2d/types.h>
 
 #include "ecs.hpp"
 
@@ -100,16 +101,21 @@ glm::vec2 Physics::get_velocity(const Collider &collider) const
     }
 }
 
-[[nodiscard]] std::optional<PhysicsBodyId> Physics::get_collision_other(const Collider &collider
-) const
+[[nodiscard]] std::vector<PhysicsBodyId> Physics::get_contact_others(const Collider &collider) const
 {
-    b2ContactData data;
-    if (b2Body_GetContactData(collider.id.value(), &data, 1) > 0)
-    {
-        return b2Shape_GetBody(data.shapeIdB);
-    }
-    else
+    auto capacity = b2Body_GetContactCapacity(collider.id.value());
+    if (capacity == 0)
     {
         return {};
     }
+
+    std::vector<b2ContactData> datas(capacity, b2ContactData{});
+    int count = b2Body_GetContactData(collider.id.value(), datas.data(), capacity);
+
+    std::vector<PhysicsBodyId> bodies(count, PhysicsBodyId{});
+    for (int i = 0; i < count; ++i)
+    {
+        bodies[i] = b2Shape_GetBody(datas[i].shapeIdA);
+    }
+    return bodies;
 }

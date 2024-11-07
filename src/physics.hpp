@@ -1,7 +1,7 @@
 #pragma once
 
-#include <box2d/id.h>
 #include <optional>
+#include <vector>
 
 #include <box2d/box2d.h>
 #include <glm/glm.hpp>
@@ -36,7 +36,7 @@ class Physics
 
     [[nodiscard]] std::optional<glm::vec2> get_contact_normal(const Collider &collider) const;
 
-    [[nodiscard]] std::optional<PhysicsBodyId> get_collision_other(const Collider &collider) const;
+    [[nodiscard]] std::vector<PhysicsBodyId> get_contact_others(const Collider &collider) const;
 };
 
 inline bool operator==(const PhysicsBodyId &a, const PhysicsBodyId &b)

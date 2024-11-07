@@ -1,5 +1,7 @@
 #include "game.hpp"
 
+#include <array>
+
 #include <SDL3/SDL_scancode.h>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -8,6 +10,34 @@
 
 #include "ecs.hpp"
 #include "engine.hpp"
+
+// clang-format off
+static std::array<char[41], 23> map{
+    "########################################",
+    "#                                      #",
+    "#                                      #",
+    "#                               C      #",
+    "#                              ##      #",
+    "#               C                      #",
+    "#             #########                #",
+    "#                                      #",
+    "#                                      #",
+    "#                                      #",
+    "#       C                 C  C         #",
+    "#     #####              ######        #",
+    "#                                      #",
+    "#                                      #",
+    "#               C                      #",
+    "#             ######                   #",
+    "#                                      #",
+    "#     C                  C             #",
+    "#    #####              #####          #",
+    "#                                      #",
+    "#                  P         C         #",
+    "#          C                           #",
+    "########################################",
+};
+// clang-format on
 
 bool Game::init()
 {
@@ -44,96 +74,86 @@ bool Game::init()
         return false;
     }
 
+    m_entities.on_construct<Collider>().connect<&Game::on_add_collider>(this);
+    m_entities.on_destroy<Collider>().connect<&Game::on_remove_collider>(this);
+
+    for (size_t row_idx = 0; row_idx < map.size(); ++row_idx)
+    {
+        const auto &row = map[row_idx];
+        for (size_t col_idx = 0; col_idx < 40; ++col_idx)
+        {
+            auto x = col_idx * 16.0f;
+            auto y = VIEWPORT_HEIGHT - (row_idx + 1) * 16.0f;
+            const auto cell = row[col_idx];
+            switch (cell)
+            {
+                case '#': {
+                    auto block = m_entities.create();
+                    m_entities.emplace<Transform>(block, glm::vec2(x, y));
+                    m_entities.emplace<Sprite>(block, block_texture_id, glm::ivec2(16, 16));
+                    m_entities.emplace<Collider>(
+                        block,
+                        Collider{
+                            .type = Collider::Type::statik,
+                            .shape = Collider::Shape::rectangle(glm::vec2(16.0, 16.0)),
+                        }
+                    );
+                    break;
+                }
+                case 'P': {
+                    auto knight = m_entities.create();
+                    m_entities.emplace<Player>(knight);
+                    m_entities.emplace<Transform>(knight, glm::vec2(x, y));
+                    m_entities.emplace<Sprite>(knight, knight_texture_id, glm::ivec2(19, 19));
+                    m_entities.emplace<Collider>(
+                        knight,
+                        Collider{
+                            .type = Collider::Type::dynamic,
+                            .shape = Collider::Shape::circle(19.0f / 2.0f),
+                            .gravity = false,
+                        }
+                    );
+                    break;
+                }
+                case 'C': {
+                    auto coin = m_entities.create();
+                    m_entities.emplace<Coin>(coin);
+                    m_entities.emplace<Transform>(coin, glm::vec2(x, y));
+                    m_entities.emplace<Sprite>(coin, coin_texture_id, glm::ivec2(16, 16));
+                    m_entities.emplace<Collider>(
+                        coin,
+                        Collider{
+                            .type = Collider::Type::statik,
+                            .shape = Collider::Shape::circle(8.0f),
+                            .overlap_only = true,
+                        }
+                    );
+                    break;
+                }
+                case ' ':
+                    break;
+                default:
+                    spdlog::error("Game::init: invalid cell in map: `{}`", cell);
+                    return false;
+            }
+        }
+    }
+
     auto bg = m_entities.create();
     m_entities.emplace<Transform>(bg, glm::vec2(0.0f));
-    m_entities.emplace<Sprite>(bg, bg_texture_id, glm::ivec2(640, 360));
-
-    auto knight = m_entities.create();
-    m_entities.emplace<Player>(knight);
-    m_entities.emplace<Transform>(knight, glm::vec2(VIEWPORT_WIDTH / 2.0f, VIEWPORT_HEIGHT / 2.0f));
-    m_entities.emplace<Sprite>(knight, knight_texture_id, glm::ivec2(19, 19));
-    m_entities.emplace<Collider>(
-        knight,
-        Collider{
-            .type = Collider::Type::dynamic,
-            .shape = Collider::Shape::circle(19.0f / 2.0f),
-            .gravity = false,
+    m_entities.emplace<Sprite>(
+        bg,
+        Sprite{
+            .texture_id = bg_texture_id,
+            .size = glm::ivec2(640, 360),
+            .z_index = -10,
         }
     );
-
-    for (int x = 0; x < VIEWPORT_WIDTH; x += 16)
-    {
-        auto block = m_entities.create();
-        m_entities.emplace<Transform>(block, glm::vec2(x, 0.0f));
-        m_entities.emplace<Sprite>(block, block_texture_id, glm::ivec2(16, 16));
-        m_entities.emplace<Collider>(
-            block,
-            Collider{
-                .type = Collider::Type::statik,
-                .shape = Collider::Shape::rectangle(glm::vec2(16.0, 16.0)),
-            }
-        );
-
-        block = m_entities.create();
-        m_entities.emplace<Transform>(block, glm::vec2(x, VIEWPORT_HEIGHT - 16.0f));
-        m_entities.emplace<Sprite>(block, block_texture_id, glm::ivec2(16, 16));
-        m_entities.emplace<Collider>(
-            block,
-            Collider{
-                .type = Collider::Type::statik,
-                .shape = Collider::Shape::rectangle(glm::vec2(16.0, 16.0)),
-            }
-        );
-    }
-
-    for (int y = 16; y < VIEWPORT_HEIGHT; y += 16)
-    {
-        auto block = m_entities.create();
-        m_entities.emplace<Transform>(block, glm::vec2(0.0f, y));
-        m_entities.emplace<Sprite>(block, block_texture_id, glm::ivec2(16, 16));
-        m_entities.emplace<Collider>(
-            block,
-            Collider{
-                .type = Collider::Type::statik,
-                .shape = Collider::Shape::rectangle(glm::vec2(16.0, 16.0)),
-            }
-        );
-
-        block = m_entities.create();
-        m_entities.emplace<Transform>(block, glm::vec2(VIEWPORT_WIDTH - 16.0f, y));
-        m_entities.emplace<Sprite>(block, block_texture_id, glm::ivec2(16, 16));
-        m_entities.emplace<Collider>(
-            block,
-            Collider{
-                .type = Collider::Type::statik,
-                .shape = Collider::Shape::rectangle(glm::vec2(16.0, 16.0)),
-            }
-        );
-    }
-
-    auto coin = m_entities.create();
-    m_entities.emplace<Coin>(coin);
-    m_entities.emplace<Transform>(coin, glm::vec2(VIEWPORT_WIDTH / 2.0f, 32.0f));
-    m_entities.emplace<Sprite>(coin, coin_texture_id, glm::ivec2(16, 16));
-    m_entities.emplace<Collider>(
-        coin,
-        Collider{
-            .type = Collider::Type::statik,
-            .shape = Collider::Shape::circle(8.0f),
-            .overlap_only = true,
-        }
-    );
-
-    auto colliders = m_entities.view<const Transform, Collider>();
-    for (const auto [entity, transform, collider] : colliders.each())
-    {
-        m_engine->get_systems()->physics.add(transform, collider);
-    }
 
     return true;
 }
 
-void Game::update([[maybe_unused]] double delta_time)
+void Game::update(double delta_time)
 {
     auto colliders = m_entities.view<Transform, const Collider>();
     for (const auto [entity, transform, collider] : colliders.each())
@@ -146,19 +166,26 @@ void Game::update([[maybe_unused]] double delta_time)
     auto coins = m_entities.view<const Coin, const Collider>();
     for (const auto [entity, collider] : coins.each())
     {
-        auto other_id = m_engine->get_systems()->physics.get_collision_other(collider);
+        auto other_ids = m_engine->get_systems()->physics.get_contact_others(collider);
 
-        if (other_id)
+        bool hit_player = false;
+        for (const auto &other_id : other_ids)
         {
             for (const auto [player_entity, player_collider, player_sprite] : players.each())
             {
-                if (*other_id == *player_collider.id)
+                if (other_id == player_collider.id.value())
                 {
-                    m_entities.destroy(entity);
-                    m_engine->get_systems()->physics.remove(collider);
-                    m_entities.emplace<AudioPlayer>(m_entities.create(), m_pickup_coin_wav);
+                    hit_player = true;
+                    goto done;
                 }
             }
+        }
+
+    done:
+        if (hit_player)
+        {
+            m_entities.destroy(entity);
+            m_entities.emplace<AudioPlayer>(m_entities.create(), m_pickup_coin_wav);
         }
     }
 
@@ -207,4 +234,17 @@ void Game::update([[maybe_unused]] double delta_time)
 const entt::registry &Game::get_entities() const
 {
     return m_entities;
+}
+
+void Game::on_add_collider(entt::registry &registry, entt::entity entity)
+{
+    const auto &transform = registry.get<const Transform>(entity);
+    auto &collider = registry.get<Collider>(entity);
+    m_engine->get_systems()->physics.add(transform, collider);
+}
+
+void Game::on_remove_collider(entt::registry &registry, entt::entity entity)
+{
+    auto &collider = registry.get<Collider>(entity);
+    m_engine->get_systems()->physics.remove(collider);
 }

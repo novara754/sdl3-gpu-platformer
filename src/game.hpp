@@ -30,4 +30,8 @@ class Game
     void update(double delta_time);
 
     const entt::registry &get_entities() const;
+
+  private:
+    void on_add_collider(entt::registry &registry, entt::entity entity);
+    void on_remove_collider(entt::registry &registry, entt::entity entity);
 };
