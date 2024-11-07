@@ -9,18 +9,21 @@ bool Engine::init()
         spdlog::error("Engine::init: failed to initialize renderer");
         return false;
     }
+    spdlog::info("Engine::init renderer initialized");
 
     if (!m_systems.audio.init())
     {
         spdlog::error("Engine::init: failed to initialize audio");
         return false;
     }
+    spdlog::info("Engine::init audio initialized");
 
     if (!m_game.init())
     {
         spdlog::error("Engine::init: failed to initialize game");
         return false;
     }
+    spdlog::info("Engine::init game initialized");
 
     return true;
 }
