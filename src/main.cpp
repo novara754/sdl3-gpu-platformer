@@ -1,12 +1,22 @@
-#include <cassert>
+#include <array>
 
 #include <SDL3/SDL.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>
 
 #include "engine.hpp"
 
 int main()
 {
+    std::array<spdlog::sink_ptr, 2> sinks{
+        std::make_shared<spdlog::sinks::stdout_sink_st>(),
+        std::make_shared<spdlog::sinks::basic_file_sink_st>("platformer-log.txt"),
+    };
+    auto combined_logger =
+        std::make_shared<spdlog::logger>("name", std::begin(sinks), std::end(sinks));
+    spdlog::register_logger(combined_logger);
+    spdlog::set_default_logger(combined_logger);
     spdlog::set_level(spdlog::level::trace);
 
     SDL_SetAppMetadata("Platformer", "0.1", nullptr);
