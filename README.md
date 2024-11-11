@@ -15,6 +15,10 @@ A pre-built binary for 64-bit Windows can be found in the releases section on [G
 > [!TIP]
 > A Windows build can be found in the releases section on the GitHub page.
 
+
+https://github.com/user-attachments/assets/7df0953a-3e75-4e5c-a9e2-bcf33dd770f2
+
+
 ## Credits
 
 * Knight - https://kevins-moms-house.itch.io/camelot
